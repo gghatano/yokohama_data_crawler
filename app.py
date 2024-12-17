@@ -1,12 +1,30 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
 import pandas as pd
 from datetime import datetime
 import re
+from selenium import webdriver
+
 
 # Chromeドライバーの設定
-driver = webdriver.Chrome()
+## ヘッドレスモードを有効化
+from selenium.webdriver.chrome.options import Options
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # 必須: ヘッドレスモード
+chrome_options.add_argument("--no-sandbox")  # サーバー環境用
+chrome_options.add_argument("--disable-dev-shm-usage")  # 共有メモリの問題回避
+chrome_options.add_argument("--disable-gpu")  # GPU無効化（古い環境向け）
+chrome_options.add_argument("--window-size=1920x1080")  # ウィンドウサイズ指定（省略可）
+
+## ChromeServiceの作成とログ設定
+from selenium.webdriver.chrome.service import Service
+current_date = datetime.now().strftime("%Y%m%d")
+service = Service(log_path="./log/"+current_date+"_selenium.log")
+# おわり
+
+
+## ドライバーの初期化
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # ページにアクセス
 url = "https://nsddd.com/web/735498669426/proposalrequest/list/view?init"
@@ -60,7 +78,6 @@ for row in all_data:
 df = pd.DataFrame(parsed_data, columns=['部局名', '提案名', '募集開始', '募集終了', '募集状態', '公開日'])
 
 # CSVファイルへの保存
-current_date = datetime.now().strftime("%Y%m%d")
 file_name = f"{current_date}_横浜市提案募集.csv"
 df.to_csv("./data/"+file_name, index=False, encoding='utf-8-sig')
 
